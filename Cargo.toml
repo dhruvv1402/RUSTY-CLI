@@ -1,13 +1,45 @@
 [package]
 name = "rusty-cli"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-description = "CLI tool for processing and computation"
+rust-version = "1.75"
+description = "A parallel computation CLI in Rust: checked arithmetic, a Rayon work pool, async pipelines and progress reporting."
+license = "MIT"
+repository = "https://github.com/dhruvv1402/RUSTY-CLI"
+readme = "README.md"
+keywords = ["cli", "parallel", "rayon", "benchmark"]
+categories = ["command-line-utilities", "concurrency"]
+
+[lib]
+name = "rusty_cli"
+path = "src/lib.rs"
 
 [dependencies]
-clap = { version = "4.4", features = ["derive"] }
-indicatif = "0.17"
-colored = "2.1"
-tokio = { version = "1.35", features = ["full"] }
-anyhow = "1.0"
-rayon = "1.8"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Parallelism. Optional so the compute core builds for wasm32, which has no
+# threads by default.
+rayon = { version = "1.8", optional = true }
+
+# CLI only.
+clap = { version = "4.5", features = ["derive"], optional = true }
+indicatif = { version = "0.17", optional = true }
+colored = { version = "2.1", optional = true }
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "time"], optional = true }
+anyhow = { version = "1.0", optional = true }
+
+[features]
+default = ["cli", "parallel"]
+parallel = ["dep:rayon"]
+cli = ["parallel", "dep:clap", "dep:indicatif", "dep:colored", "dep:tokio", "dep:anyhow"]
+
+[[bin]]
+name = "rusty-cli"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[profile.release]
+opt-level = 3
+lto = true
